@@ -1,0 +1,85 @@
+---
+{{- if .Values.clustersSetup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "redisinsight.fullname" . }}-clusters-setup
+  namespace: {{ .Values.global.namespace }}
+  annotations:
+    # "helm.sh/hook": post-install,post-upgrade,pre-install
+    # "helm.sh/hook-weight": "5"
+    # "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: hook-succeeded,hook-failed
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    {{- with .Values.podAnnotations }}
+    annotations:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+spec:
+  # ttlSecondsAfterFinished: 10
+  activeDeadlineSeconds: 600  # 10 minutes timeout
+  backoffLimit: 2
+  template:
+      metadata:
+        labels:
+          {{- include "redisinsight.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      spec:
+        restartPolicy: Never
+        {{- with .Values.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        serviceAccountName: {{ include "redisinsight.fullname" . }}
+        {{- with .Values.imagePullSecrets }}
+        imagePullSecrets:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        containers:
+        - image: "{{ .Values.clustersSetup.image.repository }}:{{ .Values.clustersSetup.image.tag }}"
+          imagePullPolicy: {{ .Values.clustersSetup.image.pullPolicy }}
+          name: {{ include "redisinsight.fullname" . }}-clusters-setup
+          command: ["/bin/sh"]
+          args: ["/var/run/add-redis-clusters.sh"]
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.global.namespace }}
+            - name: REDISINSIGHT_HOST
+              value: "{{ include "redisinsight.fullname" . }}"
+            - name: REDISINSIGHT_PORT
+              value: "{{ .Values.service.port }}"
+            - name: KEEP_ALIVE
+              value: "{{ .Values.clustersSetup.keepAlive | default "false" }}"
+            - name: EXIT_SLEEP
+              value: "{{ .Values.clustersSetup.exitSleep | default "3600" }}"
+            - name: REDIS_USERNAME
+              value: "{{ .Values.clustersSetup.redisUsername | default "redisinsight" }}"
+          resources:
+            {{- toYaml .Values.clustersSetup.resources | nindent 12 }}
+          volumeMounts:
+          - name: script
+            mountPath: /var/run/add-redis-clusters.sh
+            subPath: add-redis-clusters.sh
+          - name: redis-cluster-config
+            mountPath: "/etc/redis-cluster-config"
+            readOnly: true
+        volumes:
+        - name: script
+          configMap:
+            name: {{ include "redisinsight.fullname" . }}-setup-clusters-script
+            items:
+            - key: add-redis-clusters.sh
+              path: add-redis-clusters.sh
+        - name: redis-cluster-config
+          secret:
+            secretName: {{ include "redisinsight.fullname" . }}-secret
+            items:
+              - key: clusters.json
+                path: clusters.json
+{{- end}}
