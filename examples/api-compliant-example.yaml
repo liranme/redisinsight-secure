@@ -1,0 +1,22 @@
+# Example values with fields that match the RedisInsight API directly
+clustersSetup:
+  enabled: true
+  redisClusters:
+    # Using direct API field names matching the API requirements
+    - name: api-compatible
+      host: redis-api.example.com
+      port: 6379
+      username: "default"   # Correct API field name
+      password: "secure123"
+      tls: false
+      db: 0
+      timeout: 10000
+      # Any additional API fields can be added directly
+      # compressor: "NONE"
+      # verifyServerCert: false
+      # provider: "AWS"
+
+    # Another example with minimal required fields
+    - name: minimal-example
+      host: redis-minimal.example.com  
+      port: 6379 

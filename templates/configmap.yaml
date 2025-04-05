@@ -10,38 +10,3 @@ data:
 {{ tpl (.Files.Get "files/redisinsight-init-script.sh") . | indent 4 }}
 {{- end }}
 
----
-
-{{- if .Values.clustersSetup.enabled }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "redisinsight.fullname" . }}-redis-clusters-config
-  labels:
-    {{- include "redisinsight.labels" . | nindent 4 }}
-data:
-  clusters.json: |-
-    {
-      {{- range $index, $cluster := .Values.clustersSetup.redisClusters }}
-      {{- if $index }},{{ end }}
-      "{{ $cluster.name }}": {
-        "endpoint": "{{ $cluster.endpoint }}",
-        "password": "{{ $cluster.password }}",
-        {{- if $cluster.user_name }}
-        "user_name": "{{ $cluster.user_name }}",
-        {{- else }}
-        "user_name": "default",
-        {{- end }}
-        "port": {{ $cluster.port | default "6379" }},
-        "tls": {{ $cluster.tls | default "false" }},
-        "verifyServerCert": {{ $cluster.verifyServerCert | default "false" }},
-        "db": {{ $cluster.db | default "0" }},
-        {{- if $cluster.provider }}
-        "provider": "{{ $cluster.provider }}",
-        {{- end }}
-        "timeout": {{ $cluster.timeout | default "60" }}
-      }
-      {{- end }}
-    }
-{{- end }}
-

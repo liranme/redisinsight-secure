@@ -53,7 +53,7 @@ if [ ! -f "$CLUSTER_CONFIG_FILE" ]; then
 fi
 
 echo "Reading cluster configuration from $CLUSTER_CONFIG_FILE (passwords masked)"
-jq 'map_values(.password = "***")' "$CLUSTER_CONFIG_FILE"
+jq 'map_values(if .password then .password = "***" else . end)' "$CLUSTER_CONFIG_FILE"
 
 # Use simple string variables to track outcomes instead of arrays
 FAILED_CLUSTERS=""
@@ -70,30 +70,11 @@ for cluster_name in $(jq -r 'keys[]' "$CLUSTER_CONFIG_FILE"); do
   
   # Get required fields
   name="$cluster_name"
-  endpoint=$(jq -r '.endpoint' "$TMPJSON")
-  password=$(jq -r '.password' "$TMPJSON")
-  username=$(jq -r '.user_name // "default"' "$TMPJSON")
-  
-  # Get optional fields with defaults if not present - ensure proper JSON types
-  port=$(jq -r '.port // 6379' "$TMPJSON")
-  provider=$(jq -r '.provider // "AWS"' "$TMPJSON")
-  tls=$(jq -r '.tls // false' "$TMPJSON")
-  verifyServerCert=$(jq -r '.verifyServerCert // false' "$TMPJSON")
-  db=$(jq -r '.db // 0' "$TMPJSON")
-  # Convert timeout to milliseconds and ensure it's at least 1000
-  timeout=$(jq -r '.timeout // 60' "$TMPJSON")
-  timeout=$((timeout * 1000))
-  if [ "$timeout" -lt 1000 ]; then
-    timeout=1000
-  fi
-  if [ "$timeout" -gt 1000000000 ]; then
-    timeout=1000000000
-  fi
-  compressor="NONE"
+  host=$(jq -r '.host // empty' "$TMPJSON")
   
   # Skip empty clusters
-  if [ -z "$name" ] || [ -z "$endpoint" ]; then
-    echo "Missing required fields for cluster, skipping..."
+  if [ -z "$name" ] || [ -z "$host" ]; then
+    echo "Missing required fields (name or host) for cluster, skipping..."
     continue
   fi
 
@@ -109,33 +90,23 @@ for cluster_name in $(jq -r 'keys[]' "$CLUSTER_CONFIG_FILE"); do
   fi
   
   echo "Adding cluster '$name'..."
-  # Create JSON payload using jq to ensure proper JSON formatting
-  CLUSTER_PAYLOAD=$(jq -n \
-    --arg name "$name" \
-    --arg host "$endpoint" \
-    --argjson port "$port" \
-    --arg username "$username" \
-    --arg password "$password" \
-    --argjson db "$db" \
-    --arg provider "$provider" \
-    --argjson tls "$tls" \
-    --argjson verifyServerCert "$verifyServerCert" \
-    --argjson timeout "$timeout" \
-    --arg compressor "$compressor" \
-    '{
-      name: $name,
-      host: $host,
-      port: $port,
-      username: $username,
-      password: $password,
-      db: $db,
-      provider: $provider,
-      tls: $tls,
-      verifyServerCert: $verifyServerCert,
-      timeout: $timeout,
-      compressor: $compressor
-    }')
-  echo "CLUSTER_PAYLOAD: $CLUSTER_PAYLOAD"
+  
+  # Pass all fields from the original configuration, ensuring only the required ones have defaults
+  CLUSTER_PAYLOAD=$(jq -n --argjson orig "$(cat "$TMPJSON")" --arg name "$name" '{
+    name: $name,
+    host: ($orig.host // ""),
+    port: ($orig.port // 6379) | tonumber
+  } + ($orig | del(.name, .host, .port)) | walk(
+    if type == "string" and (. == "true" or . == "false") then
+      if . == "true" then true else false end
+    elif type == "string" and (. | tostring | test("^[0-9]+$")) then
+      . | tonumber
+    else .
+    end
+  ) | with_entries(select(.value != null))')
+  
+  # Format CLUSTER_PAYLOAD for better readability when debugging
+  echo "CLUSTER_PAYLOAD: $(echo "$CLUSTER_PAYLOAD" | jq '.')"
   ADD_RESULT=$(curl -s -X POST "http://${REDISINSIGHT_HOST}:${REDISINSIGHT_PORT}/api/databases" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \

@@ -39,26 +39,25 @@ clustersSetup:
   # List of Redis clusters to configure in RedisInsight
   redisClusters:
     - name: local
-      endpoint: redis-master.default.svc.cluster.local
+      host: redis-master.default.svc.cluster.local
+      port: 6379
       password: "PSM5dMcgSy"
-      user_name: "default"
-      port: "6379"
-      tls: "false"
-      db: "0"
-      timeout: "60"
-    # Required parameters:
-    # - name: cluster-name          # Name of the Redis cluster (required)
-    # - endpoint: redis.example.com # Redis hostname or IP (required)
-    # - password: secure-password   # Redis password (required)
+      username: "default"
+      tls: false
+    
+    # REQUIRED parameters:
+    # - name: cluster-name          # Name of the Redis cluster (REQUIRED)
+    # - host: redis.example.com     # Redis hostname or IP (REQUIRED)
+    # - port: 6379                  # Redis port (defaults to 6379 if not specified)
     #
-    # Optional parameters (with defaults):
-    # - user_name: default          # Redis username
-    # - port: 6379                  # Redis port
-    # - tls: true                   # Enable TLS
-    # - verifyServerCert: false     # Verify server certificate
-    # - db: 0                       # Database number
-    # - provider: AWS               # Provider name
-    # - timeout: 300000             # Connection timeout in ms
+    # Common optional parameters:
+    # - password: "secure-password"  # Redis password
+    # - username: "default"          # Redis username
+    # - tls: false                   # Enable TLS
+    # - db: 0                        # Database number
+    # - timeout: 60000               # Connection timeout in milliseconds
+    #
+    # Any other parameters are optional and will be passed to the RedisInsight API
 
 imagePullSecrets: []
 nameOverride: ""
