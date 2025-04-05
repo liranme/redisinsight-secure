@@ -14,6 +14,9 @@ image:
 # When enabled, RedisInsight will be preconfigured with the specified Redis clusters
 clustersSetup:
   enabled: true
+  # Accept redisinsight EULA, please read and accept the EULA before setting to true
+  #https://redis.io/legal/redis-insight-license-terms/
+  acceptEULA: false
   # Container image configuration for the setup container
   image:
     repository: "giantswarm/tiny-tools"
@@ -36,15 +39,21 @@ clustersSetup:
   tolerations: []
   # Logging configuration
   logLevel: DEBUG  # Valid values: DEBUG, INFO, WARN, ERROR, NONE
-  # List of Redis clusters to configure in RedisInsight
-  redisClusters:
-    - name: local
-      host: redis-master.default.svc.cluster.local
-      port: 6379
-      password: "PSM5dMcgSy"
-      username: "default"
-      tls: false
-    
+
+  config:
+    # Prune clusters that are not in the config file  
+    prunClusters: true
+    # Existing secret with Redis clusters config (if not provided, a new secret will be created based on the redisClusters list)
+    # if using existing secret, please follow secret.yaml template
+    existingSecretConfig: ""
+    # List of Redis clusters to configure secret for RedisInsight
+    redisClusters:
+      - name: local-2
+        host: redis-master.default.svc.cluster.local
+        port: 6379
+        password: "PSM5dMcgSy"
+        username: "default"
+        tls: false
     # REQUIRED parameters:
     # - name: cluster-name          # Name of the Redis cluster (REQUIRED)
     # - host: redis.example.com     # Redis hostname or IP (REQUIRED)
@@ -230,11 +239,13 @@ oauth2-proxy:
     # Default configuration, to be overridden
     configFile: |-
       email_domains = [ "*" ]
-      upstreams = [ "file:///dev/null" ]
+      upstreams = [ "http://redisinsight-dev-euc1-redisinsight.redisinsight.svc.cluster.local:5540" ]
+
     # Custom configuration file: oauth2_proxy.cfg
     # configFile: |-
     #   pass_basic_auth = false
     #   pass_access_token = true
+
     # Use an existing config map (see configmap.yaml for required fields)
     # Example:
     # existingConfig: config
