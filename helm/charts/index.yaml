@@ -1,3 +1,29 @@
 apiVersion: v1
-entries: {}
-generated: "2023-04-06T12:00:00Z" 
+entries:
+  redisinsight:
+  - apiVersion: v2
+    appVersion: 1.4.0
+    created: "2025-04-06T12:33:33.397861513Z"
+    dependencies:
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 7.12.8
+    description: Redisinsight helm chart for Kubernetes
+    digest: 3279cae3c95ef65a80deb37e596c9231a27b00b0b7eee7560ba9181e0bf60667
+    home: https://github.com/liranme
+    keywords:
+    - redis
+    - redisinsight
+    - oauth2-proxy
+    maintainers:
+    - email: liranmenashe1@gmail.com
+      name: Liran Menashe
+    name: redisinsight
+    sources:
+    - https://github.com/liranme/redisinsight-secure
+    type: application
+    urls:
+    - https://github.com/liranme/redisinsight-secure/raw/main/helm/charts/redisinsight-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-04-06T12:33:33.387405997Z"
