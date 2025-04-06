@@ -1,4 +1,4 @@
-# RedisInsight Helm Chart
+# RedisInsight-secure Helm Chart
 
 This Helm chart deploys RedisInsight, a powerful visualization tool for Redis, on Kubernetes clusters.
 
