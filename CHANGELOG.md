@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/liranme/redisinsight-secure/compare/v1.11.0...v1.12.0) (2025-04-06)
+
+
+### Features
+
+* initial commit ([28fff77](https://github.com/liranme/redisinsight-secure/commit/28fff77f0d300ec184d2a0dac33527b9e73848a6))
+
 # [1.11.0](https://github.com/liranme/redisinsight-secure/compare/v1.10.0...v1.11.0) (2025-04-06)
 
 
