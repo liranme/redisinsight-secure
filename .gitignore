@@ -6,12 +6,6 @@
 *~
 .DS_Store
 
-# Helm
-charts/*/charts/
-charts/*/requirements.lock
-charts/*/Chart.lock
-*.tgz
-
 # Kubernetes
 kubeconfig
 *.kubeconfig
