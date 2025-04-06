@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: "1.2.0"
+appVersion: "1.3.0"
 description: Redisinsight helm chart for Kubernetes
 home: https://github.com/liranme
 keywords:
@@ -13,7 +13,7 @@ name: redisinsight
 sources:
   - https://github.com/liranme/redisinsight-secure
 type: application
-version: 1.2.0
+version: 1.3.0
 dependencies:
   - name: oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
