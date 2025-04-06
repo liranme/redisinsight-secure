@@ -1,0 +1,29 @@
+{
+  "branches": ["main", "master", "add-ci"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "semantic-release-helm3",
+      {
+        "chartPath": "helm/redisinsight",
+        "onlyUpdateVersion": false,
+        "registry": "helm/charts"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md", "helm/redisinsight/Chart.yaml", "helm/charts/*"],
+        "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+} 
