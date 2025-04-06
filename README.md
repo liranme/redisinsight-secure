@@ -24,7 +24,7 @@ RedisInsight provides a graphical user interface for managing, analyzing, and op
 
 ```bash
 # Add the repository
-helm repo add redisinsight-secure https://raw.githubusercontent.com/liranme/redisinsight-secure/main/
+helm repo add redisinsight-secure https://raw.githubusercontent.com/liranme/redisinsight-secure/main/helm/charts
 helm repo update
 ```
 
@@ -115,6 +115,16 @@ ingress:
 ```
 
 ### OAuth2 Authentication (Enterprise SSO)
+
+This chart includes [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) integration to provide secure authentication for RedisInsight. The oauth2-proxy acts as an authentication layer in front of RedisInsight, supporting various identity providers including:
+
+- Google
+- GitHub
+- Azure AD
+- Okta
+- Keycloak
+- OIDC providers
+- And many others
 
 For enterprise environments requiring SSO integration:
 

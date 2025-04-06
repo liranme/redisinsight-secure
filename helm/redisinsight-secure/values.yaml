@@ -13,7 +13,7 @@ image:
 # Configuration for automatic Redis clusters setup
 # When enabled, RedisInsight will be preconfigured with the specified Redis clusters
 clustersSetup:
-  enabled: true
+  enabled: false
   # Accept redisinsight EULA, please read the EULA before setting to true
   #https://redis.io/legal/redis-insight-license-terms/
   acceptEULA: false
