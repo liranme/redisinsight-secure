@@ -36,7 +36,7 @@ jobs:
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHART_PATH: helm/redisinsight
+          CHART_PATH: helm/redisinsight-secure
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           extra_plugins: |
