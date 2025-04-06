@@ -1,94 +1,60 @@
-name: Release Helm Chart
+name: Release
 
 on:
   push:
     branches:
       - main
+      - master
       - add-ci
-    paths-ignore:
-      - 'README.md'
-      - '.github/**'
-      - '.vscode/**'
 
 jobs:
   release:
+    name: Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Configure Git
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Install Helm
+      - name: Install dependencies
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/changelog semantic-release-helm3
+
+      - name: Setup Helm
         uses: azure/setup-helm@v3
         with:
-          version: 'v3.11.2'
+          version: 'latest'
 
-      - name: Get Next Version from Conventional Commits
-        id: get-version
-        uses: mathieudutour/github-tag-action@v6.1
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          CHART_PATH: helm/redisinsight
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          release_branches: main
-          dry_run: true
-          tag_prefix: ""
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            semantic-release-helm3
 
-      - name: Update Chart Version
+      - name: Update Helm Repository Index
+        if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          VERSION=${{ steps.get-version.outputs.new_version }}
-          echo "Updating chart version to $VERSION"
-          sed -i "s/^version: .*/version: $VERSION/" Chart.yaml
-
-      - name: Update App Version
-        run: |
-          # Optional: Update appVersion if needed
-          # This step depends on how you want to handle appVersion
-          # APP_VERSION=$(echo ${{ steps.get-version.outputs.new_tag }} | sed 's/v//')
-          # sed -i "s/^appVersion: .*/appVersion: \"$APP_VERSION\"/" Chart.yaml
-
-      - name: Package Helm Chart
-        run: |
-          mkdir -p .cr-release-packages
-          helm package . -d .cr-release-packages
-
-      - name: Setup GitHub Pages
-        id: pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: '.cr-release-packages'
-
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
-
-      - name: Create Release
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          release_branches: main
-          create_annotated_tag: true
-          tag_prefix: ""
-          dry_run: false
-
-      - name: Update Index.yaml and Push to gh-pages
-        run: |
-          git checkout gh-pages || git checkout -b gh-pages
-          cp -r .cr-release-packages/* .
-          helm repo index . --url https://${{ github.repository_owner }}.github.io/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+          # Ensure directory exists
+          mkdir -p helm/charts
           
-          git add .
-          git commit -m "Release ${{ steps.get-version.outputs.new_version }}"
-          git push origin gh-pages 
+          # Update Helm repository index
+          helm repo index helm/charts --url https://github.com/${{ github.repository }}/raw/main/helm/charts
+          
+      - name: Commit Chart Package
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update helm repository for version ${{ steps.semantic.outputs.new_release_version }}"
+          file_pattern: "helm/charts/*" 

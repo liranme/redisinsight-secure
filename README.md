@@ -57,8 +57,7 @@ helm uninstall my-redis-insight
 This repository follows [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This enables automatic versioning and release notes generation.
 
 Examples:
-```
-feat(auth): add support for LDAP authentication
+```feat(auth): add support for LDAP authentication
 fix: correct port binding in deployment template
 docs: update installation instructions
 ```
@@ -79,6 +78,23 @@ When you push to the main branch, the system automatically:
 - Packages the Helm chart
 - Creates a GitHub Release with the packaged chart
 - Updates the Helm repository index file in the main branch
+
+#### Semantic Release Process
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) with [semantic-release-helm3](https://github.com/nflaig/semantic-release-helm) plugin to automate the release process. The workflow:
+
+1. Analyzes commits since the last release using conventional commit format
+2. Determines the next semantic version number
+3. Generates release notes based on commit messages
+4. Updates the version in Chart.yaml (and optionally appVersion)
+5. Packages the Helm chart automatically
+6. Creates a new GitHub release with appropriate tags
+7. Updates the Helm repository index
+
+To use this system effectively:
+- Always follow the conventional commit format
+- Create a GitHub personal access token with `repo` scope and add it as a repository secret named `RELEASE_TOKEN`
+- Push changes to the main branch to trigger releases
 
 ## Configuration
 

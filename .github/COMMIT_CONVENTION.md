@@ -1,10 +1,10 @@
 # Commit Message Guidelines
 
-This project follows [Conventional Commits](https://www.conventionalcommits.org/) specification to have human and machine-readable commit messages. This leads to more structured commit history and automatic version management based on commit types.
+This project follows [Conventional Commits](https://www.conventionalcommits.org/) for commit messages to enable automatic versioning and CHANGELOG generation.
 
 ## Commit Message Format
 
-Each commit message consists of a **header**, a **body**, and a **footer**:
+Each commit message consists of a **header**, a **body** and a **footer**. The header has a special format that includes a **type**, an optional **scope** and a **subject**:
 
 ```
 <type>(<scope>): <subject>
@@ -14,59 +14,55 @@ Each commit message consists of a **header**, a **body**, and a **footer**:
 <footer>
 ```
 
-The **header** is mandatory, while the **body** and **footer** are optional.
+Only the **header** is mandatory; the **scope** of the header is optional.
 
-### Type
+## Types
 
-Must be one of the following:
+The commit type must be one of the following:
 
-* **feat**: A new feature (triggers a MINOR version bump)
-* **fix**: A bug fix (triggers a PATCH version bump)
-* **docs**: Documentation only changes
-* **style**: Changes that do not affect the meaning of the code (e.g., formatting)
-* **refactor**: A code change that neither fixes a bug nor adds a feature
-* **perf**: A code change that improves performance
-* **test**: Adding missing or correcting existing tests
-* **chore**: Changes to the build process or auxiliary tools and libraries
-* **ci**: Changes to CI configuration files and scripts
-* **revert**: Reverts a previous commit
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing or correcting existing tests
+- **chore**: Changes to the build process or auxiliary tools and libraries
 
-### Scope
+## Scope
 
-The scope provides additional contextual information:
+The scope is optional and should be the name of the component affected (as perceived by the person reading the changelog):
 
-* **chart**: Changes related to the Helm chart
-* **deps**: Changes to dependencies
-* **ui**: User interface related changes
-* **auth**: Authentication related changes
+- **charts**: Changes to Helm chart files
+- **auth**: Authentication related changes
+- **ci**: CI/CD pipeline changes
+- **deps**: Dependency updates
 
-The scope is optional and can be omitted.
-
-### Subject
+## Subject
 
 The subject contains a succinct description of the change:
 
-* Use the imperative, present tense: "change" not "changed" nor "changes"
-* Don't capitalize the first letter
-* No period (.) at the end
+- Use the imperative, present tense: "change" not "changed" nor "changes"
+- Don't capitalize the first letter
+- No period (.) at the end
 
-### Body
+## Body
 
-The body should include the motivation for the change and contrast this with previous behavior.
+The body should include the motivation for the change and contrast with previous behavior.
 
-### Footer
+## Footer
 
-The footer should contain information about Breaking Changes and reference GitHub issues that this commit closes.
+The footer should contain any information about **Breaking Changes** and is also the place to reference GitHub issues that this commit **Closes**.
 
-Breaking changes should start with the phrase `BREAKING CHANGE:` with a space or two newlines.
+Breaking Changes should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
 
 ## Examples
 
 ```
-feat(chart): add support for oauth2 authentication
+feat(auth): add support for LDAP authentication
 
-Add OAuth2 proxy as an optional component in the Helm chart.
-This allows users to integrate with external authentication providers.
+Implements LDAP authentication in addition to local authentication.
+Includes LDAP group synchronization for role mapping.
 
 Closes #123
 ```
@@ -74,23 +70,25 @@ Closes #123
 ```
 fix: correct port binding in deployment template
 
-The container port was incorrectly mapped which caused connection issues.
+The service was binding to the wrong container port which
+caused connection issues.
 ```
 
 ```
-BREAKING CHANGE: drop support for kubernetes 1.16
+docs: update installation instructions
 
-Due to dependency requirements, we can no longer support Kubernetes versions below 1.18.
+Updated to reflect the latest Helm chart parameters.
 ```
 
-## Automatic Versioning
+```
+feat!: redesign API authentication flow
 
-This repository uses these conventional commits to automatically:
+BREAKING CHANGE: The authentication flow has been completely
+redesigned. Old authentication tokens will not work anymore.
+```
 
-1. Determine the next semantic version number
-2. Generate changelogs
-3. Publish new releases
+```
+chore(deps): update Helm dependencies
 
-* `fix:` commits trigger PATCH releases (1.0.0 -> 1.0.1)
-* `feat:` commits trigger MINOR releases (1.0.0 -> 1.1.0)
-* `feat(scope): .... BREAKING CHANGE:` trigger MAJOR releases (1.0.0 -> 2.0.0) 
+Updated oauth2-proxy to version 7.2.0
+``` 
