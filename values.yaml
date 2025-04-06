@@ -14,9 +14,9 @@ image:
 # When enabled, RedisInsight will be preconfigured with the specified Redis clusters
 clustersSetup:
   enabled: true
-  # Accept redisinsight EULA, please read and accept the EULA before setting to true
+  # Accept redisinsight EULA, please read the EULA before setting to true
   #https://redis.io/legal/redis-insight-license-terms/
-  acceptEULA: false
+  acceptEULA: true
   # Container image configuration for the setup container
   image:
     repository: "giantswarm/tiny-tools"
@@ -122,14 +122,28 @@ service:
   type: ClusterIP
   port: 5540
 
+# Ingress configuration for RedisInsight
+# Note: For simple authentication, use the built-in basic auth option below
+# For SSO/OIDC authentication, disable this and use oauth2-proxy instead
 ingress:
   enabled: false
-  className: ""
+  className: "nginx"
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  # Basic authentication configuration
+  # Note: This is a simple username/password authentication mechanism
+  # For more advanced authentication (SSO/OIDC), use oauth2-proxy instead
+  basicauth:
+    enabled: false
+    # Configure basic auth users
+    users:
+      - username: "user1"
+        password: "password1"
+      - username: "user2"
+        password: "password2"
   hosts:
-    - host: chart-example.local
+    - host: redisinsight.local
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -184,8 +198,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-
 
 oauth2-proxy:
   enabled: false

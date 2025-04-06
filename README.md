@@ -1,101 +1,239 @@
 # RedisInsight Helm Chart
 
-This Helm chart deploys RedisInsight, a graphical Redis management tool, on Kubernetes.
+This Helm chart deploys RedisInsight, a powerful visualization tool for Redis, on Kubernetes clusters.
 
-## Features
+## Overview
 
-- Deploy RedisInsight with persistent storage
-- Optional password encryption
-- Pre-configured Redis clusters setup
-- Ingress support for external access
+RedisInsight provides a graphical user interface for managing, analyzing, and optimizing Redis databases. This Helm chart simplifies the deployment of RedisInsight in Kubernetes environments, with features like:
+
+- Automatic Redis cluster configuration
+- Multiple authentication methods (basic auth, OAuth2)
+- Persistent storage management
+- Support for TLS and encryption
+- Fine-grained resource allocation
+
+## Prerequisites
+
+- Kubernetes 1.14+
+- Helm 3.0+
+- PV provisioner support in the underlying infrastructure (if persistence is enabled)
 
 ## Installation
 
-```bash
-# Add the Helm repository (update with your actual repo)
-helm repo add myrepo https://charts.example.com/
-helm repo update
+### Add the Helm Repository
 
-# Install the chart
-helm install redisinsight myrepo/redisinsight
+```bash
+# Add the repository (replace with the actual repository when published)
+helm repo add redis-insight https://charts.example.com/
+helm repo update
+```
+
+### Install the Chart
+
+```bash
+# Install with default configuration
+helm install my-redis-insight redis-insight/redisinsight
+
+# Install with custom configuration
+helm install my-redis-insight redis-insight/redisinsight -f values.yaml
+```
+
+### Upgrading
+
+```bash
+helm upgrade my-redis-insight redis-insight/redisinsight
+```
+
+## Uninstallation
+
+```bash
+helm uninstall my-redis-insight
 ```
 
 ## Configuration
 
-### Pre-configuring Redis Clusters
+### Important Parameters
 
-The chart supports pre-configuring RedisInsight with Redis clusters, which is useful for providing immediate access to your Redis instances.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `replicaCount` | Number of RedisInsight replicas | `1` |
+| `image.repository` | RedisInsight image repository | `redis/redisinsight` |
+| `image.tag` | RedisInsight image tag | `"2.58"` |
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `clustersSetup.enabled` | Enable automatic Redis cluster configuration | `true` |
+| `clustersSetup.acceptEULA` | Accept RedisInsight EULA | `false` |
+| `clustersSetup.config.prunClusters` | Remove clusters that exist in RedisInsight but not in config | `true` |
+| `persistence.enabled` | Enable persistent storage for RedisInsight data | `false` |
+| `passwordEncryption.enabled` | Enable encryption for Redis passwords | `true` |
+| `ingress.enabled` | Enable ingress resource for RedisInsight | `false` |
+| `ingress.basicauth.enabled` | Enable HTTP basic authentication | `false` |
+| `oauth2-proxy.enabled` | Enable OAuth2 Proxy for SSO authentication | `false` |
 
-To enable this feature, set `clustersSetup.enabled` to `true` and provide your Redis clusters in `clustersSetup.redisClusters`:
+### Example Values File
+
+```yaml
+# Basic RedisInsight setup with a single Redis cluster
+image:
+  tag: "2.58"
+
+clustersSetup:
+  enabled: true
+  acceptEULA: true
+  config:
+    redisClusters:
+      - name: "my-redis"
+        host: "redis.default.svc.cluster.local"
+        port: 6379
+        password: "my-password" # Consider using secrets for passwords
+
+persistence:
+  enabled: true
+  size: 2Gi
+
+service:
+  type: ClusterIP
+```
+
+## Authentication Options
+
+This chart offers multiple authentication methods for RedisInsight:
+
+### Basic Authentication (Simple)
+
+Basic authentication adds username/password protection to the RedisInsight UI. To enable:
+
+```yaml
+ingress:
+  enabled: true
+  basicauth:
+    enabled: true
+    users:
+      - username: "admin"
+        password: "strongpassword"
+```
+
+### OAuth2 Authentication (Enterprise SSO)
+
+For enterprise environments requiring SSO integration:
+
+```yaml
+ingress:
+  enabled: false # Disable the regular ingress when using oauth2-proxy
+
+oauth2-proxy:
+  enabled: true
+  config:
+    clientID: "oauth-client-id"
+    clientSecret: "oauth-secret"
+    cookieSecret: "cookie-encryption-secret"
+    configFile: |-
+      email_domains = ["company.com"]
+      upstreams = ["http://redisinsight.svc.cluster.local:5540"]
+```
+
+## Redis Clusters Configuration
+
+RedisInsight can automatically configure connections to your Redis databases:
 
 ```yaml
 clustersSetup:
   enabled: true
-  # Configure the container used for setup
-  image:
-    repository: curlimages/curl
-    tag: "7.87.0"
-    pullPolicy: IfNotPresent
-  # Configure resources for the setup container
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 64Mi
-  # List of Redis clusters to configure
-  redisClusters:
-    - name: production
-      endpoint: redis-prod.example.com
-      password: prod-password
-      user_name: default
-    
-    - name: staging
-      endpoint: redis-staging.example.com
-      password: staging-password
-      user_name: default
+  acceptEULA: true # Required - read and accept RedisInsight license
+  config:
+    prunClusters: true # Remove entries not in current config
+    redisClusters:
+      - name: "redis-main"
+        host: "redis-master.default.svc.cluster.local"
+        port: 6379
+        password: "secure-password"
+        username: "default"
+        tls: false
+      
+      - name: "redis-replica"
+        host: "redis-replica.default.svc.cluster.local"
+        port: 6379
+        tls: true
 ```
 
-This will deploy a sidecar container that waits for RedisInsight to be ready, then adds the configured Redis clusters. The sidecar container automatically handles EULA acceptance and verifies the connections are properly established.
+### Using Existing Secret for Redis Clusters
 
-See the [example values file](examples/redis-clusters-values.yaml) for a complete configuration.
+Instead of specifying Redis connections in values.yaml, you can use an existing secret:
 
-### Password Encryption
+```yaml
+clustersSetup:
+  enabled: true
+  acceptEULA: true
+  config:
+    existingSecretConfig: "redis-connections-secret"
+    redisClusters: [] # Ignored when existingSecretConfig is provided
+```
 
-Optionally enable password encryption for the RedisInsight configuration:
+## Storage and Persistence
+
+RedisInsight can store its configuration data on persistent volumes:
+
+```yaml
+persistence:
+  enabled: true
+  storageClassName: "standard"
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi
+```
+
+## Logging Levels
+
+Set the logging level for the Redis cluster setup job:
+
+```yaml
+clustersSetup:
+  logLevel: INFO  # Options: DEBUG, INFO, WARN, ERROR, NONE
+```
+
+## Security
+
+### Encryption
+
+Enable Redis password encryption:
 
 ```yaml
 passwordEncryption:
   enabled: true
 ```
 
-### Persistence
+### Security Context
 
-By default, the chart uses ephemeral storage. To enable persistence:
-
-```yaml
-persistence:
-  enabled: true
-  storageClassName: standard
-  size: 1Gi
-```
-
-### Ingress
-
-For external access, enable and configure the Ingress:
+Custom security contexts for the RedisInsight pod:
 
 ```yaml
-ingress:
-  enabled: true
-  className: nginx
-  hosts:
-    - host: redisinsight.example.com
-      paths:
-        - path: /
-          pathType: Prefix
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
 ```
 
-## Examples
+## Resource Allocation
 
-See the [examples](examples/) directory for configuration examples.
+```yaml
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+```
+
+## Configuration File Reference
+
+For detailed configuration options, refer to the [values.yaml](https://github.com/your-repo/redisinsight/blob/main/values.yaml) file.
+
+## License
+
+Please read and accept the [RedisInsight License Terms](https://redis.io/legal/redis-insight-license-terms/) before using this chart.
