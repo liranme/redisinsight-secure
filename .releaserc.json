@@ -10,17 +10,10 @@
       }
     ],
     [
-      "semantic-release-helm3",
-      {
-        "chartPath": "helm/redisinsight",
-        "onlyUpdateVersion": false,
-        "registry": "file://./helm/charts"
-      }
-    ],
-    [
       "@semantic-release/exec",
       {
-        "publishCmd": "mkdir -p helm/charts && helm repo index helm/charts --url https://github.com/${process.env.GITHUB_REPOSITORY}/raw/main/helm/charts"
+        "prepareCmd": "sed -i \"s/^version:.*/version: ${nextRelease.version}/\" helm/redisinsight/Chart.yaml",
+        "publishCmd": "helm package helm/redisinsight && mkdir -p helm/charts && mv redisinsight-${nextRelease.version}.tgz helm/charts/ && helm repo index helm/charts --url https://github.com/${process.env.GITHUB_REPOSITORY}/raw/main/helm/charts"
       }
     ],
     [

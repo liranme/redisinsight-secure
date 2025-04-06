@@ -24,7 +24,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/changelog @semantic-release/exec semantic-release-helm3
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/changelog @semantic-release/exec
 
       - name: Setup Helm
         uses: azure/setup-helm@v3
@@ -43,7 +43,6 @@ jobs:
             @semantic-release/changelog
             @semantic-release/git
             @semantic-release/exec
-            semantic-release-helm3
 
       - name: Commit Chart Package
         if: steps.semantic.outputs.new_release_published == 'true'
