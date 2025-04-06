@@ -236,4 +236,12 @@ For detailed configuration options, refer to the [values.yaml](https://github.co
 
 ## License
 
-Please read and accept the [RedisInsight License Terms](https://redis.io/legal/redis-insight-license-terms/) before using this chart.
+### Chart License
+
+This Helm chart is licensed under the [Apache License 2.0](LICENSE).
+
+### RedisInsight License
+
+RedisInsight itself is a product of Redis Ltd. and is subject to the [RedisInsight License Terms](https://redis.io/legal/redis-insight-license-terms/). By using this chart, you accept the RedisInsight License Agreement.
+
+**Important**: This chart helps you deploy RedisInsight, but the usage of RedisInsight itself is governed by its own license. Make sure to read and accept the RedisInsight License Terms before using this chart.
