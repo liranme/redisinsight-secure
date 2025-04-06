@@ -25,6 +25,6 @@ entries:
     - https://github.com/liranme/redisinsight-secure
     type: application
     urls:
-    - https://github.com/liranme/redisinsight-secure/raw/main/helm/charts/redisinsight-secure-1.1.0.tgz
-    version: 1.1.0
+    - https://github.com/liranme/redisinsight-secure/raw/main/helm/charts/redisinsight-secure-0.1.0.tgz
+    version: 0.1.0
 generated: "2025-04-06T13:43:59.143760253Z"

@@ -16,7 +16,7 @@ clustersSetup:
   enabled: true
   # Accept redisinsight EULA, please read the EULA before setting to true
   #https://redis.io/legal/redis-insight-license-terms/
-  acceptEULA: true
+  acceptEULA: false
   # Container image configuration for the setup container
   image:
     repository: "giantswarm/tiny-tools"
@@ -48,10 +48,10 @@ clustersSetup:
     existingSecretConfig: ""
     # List of Redis clusters to configure secret for RedisInsight
     redisClusters:
-      - name: local-2
+      - name: local-1
         host: redis-master.default.svc.cluster.local
         port: 6379
-        password: "PSM5dMcgSy"
+        password: "redis-password"
         username: "default"
         tls: false
     # REQUIRED parameters:
