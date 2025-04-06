@@ -24,7 +24,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/changelog semantic-release-helm3
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/changelog @semantic-release/exec semantic-release-helm3
 
       - name: Setup Helm
         uses: azure/setup-helm@v3
@@ -35,23 +35,16 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           CHART_PATH: helm/redisinsight
+          GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           extra_plugins: |
             @semantic-release/changelog
             @semantic-release/git
+            @semantic-release/exec
             semantic-release-helm3
 
-      - name: Update Helm Repository Index
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          # Ensure directory exists
-          mkdir -p helm/charts
-          
-          # Update Helm repository index
-          helm repo index helm/charts --url https://github.com/${{ github.repository }}/raw/main/helm/charts
-          
       - name: Commit Chart Package
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
