@@ -19,3 +19,4 @@ dependencies:
     repository: https://oauth2-proxy.github.io/manifests
     version: 7.12.8
     condition: oauth2-proxy.enabled
+
