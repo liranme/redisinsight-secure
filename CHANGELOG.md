@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/liranme/redisinsight-secure/compare/v1.0.0...v1.0.1) (2025-04-06)
+
+
+### Bug Fixes
+
+* Change default values, align docs ([73fbc8a](https://github.com/liranme/redisinsight-secure/commit/73fbc8a5e2691afc0c51c0a7877b1fe0ad0a070a))
+* Change default values, align docs ([52f84f0](https://github.com/liranme/redisinsight-secure/commit/52f84f0b888579daf96a8f69facfa8f305680071))
+
 # 1.0.0 (2025-04-06)
 
 
