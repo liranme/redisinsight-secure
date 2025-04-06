@@ -8,7 +8,7 @@ image:
   repository: redis/redisinsight
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "2.58"
+  tag: "2.68"
 
 # Configuration for automatic Redis clusters setup
 # When enabled, RedisInsight will be preconfigured with the specified Redis clusters
