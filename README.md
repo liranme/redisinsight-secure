@@ -23,8 +23,8 @@ RedisInsight provides a graphical user interface for managing, analyzing, and op
 ### Add the Helm Repository
 
 ```bash
-# Add the repository (replace with the actual repository when published)
-helm repo add redis-insight https://charts.example.com/
+# Add the repository
+helm repo add redisinsight-secure https://raw.githubusercontent.com/liranme/redisinsight-secure/main/
 helm repo update
 ```
 
@@ -32,16 +32,16 @@ helm repo update
 
 ```bash
 # Install with default configuration
-helm install my-redis-insight redis-insight/redisinsight
+helm install my-redis-insight redisinsight-secure/redisinsight
 
 # Install with custom configuration
-helm install my-redis-insight redis-insight/redisinsight -f values.yaml
+helm install my-redis-insight redisinsight-secure/redisinsight -f values.yaml
 ```
 
 ### Upgrading
 
 ```bash
-helm upgrade my-redis-insight redis-insight/redisinsight
+helm upgrade my-redis-insight redisinsight-secure/redisinsight
 ```
 
 ## Uninstallation
@@ -49,6 +49,36 @@ helm upgrade my-redis-insight redis-insight/redisinsight
 ```bash
 helm uninstall my-redis-insight
 ```
+
+## Development
+
+### Commit Message Convention
+
+This repository follows [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This enables automatic versioning and release notes generation.
+
+Examples:
+```
+feat(auth): add support for LDAP authentication
+fix: correct port binding in deployment template
+docs: update installation instructions
+```
+
+See [COMMIT_CONVENTION.md](.github/COMMIT_CONVENTION.md) for detailed guidelines.
+
+### Continuous Integration
+
+The project uses GitHub Actions for CI/CD:
+
+1. **Automated Versioning**: Semantic versioning based on conventional commits
+2. **Chart Publishing**: Automatic packaging and publishing to GitHub Releases
+3. **Commit Validation**: Enforcing conventional commit format in PRs
+
+When you push to the main branch, the system automatically:
+- Determines the next version based on commit types (fix → patch, feat → minor, BREAKING CHANGE → major)
+- Updates version in Chart.yaml
+- Packages the Helm chart
+- Creates a GitHub Release with the packaged chart
+- Updates the Helm repository index file in the main branch
 
 ## Configuration
 

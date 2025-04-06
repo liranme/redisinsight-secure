@@ -1,0 +1,88 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+      - add-ci
+    paths-ignore:
+      - 'README.md'
+      - '.github/**'
+      - '.vscode/**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.11.2'
+
+      - name: Get Next Version from Conventional Commits
+        id: get-version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          release_branches: main
+          dry_run: true
+          tag_prefix: ""
+
+      - name: Update Chart Version
+        run: |
+          VERSION=${{ steps.get-version.outputs.new_version }}
+          echo "Updating chart version to $VERSION"
+          sed -i "s/^version: .*/version: $VERSION/" Chart.yaml
+          echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Package Helm Chart
+        run: |
+          mkdir -p .cr-release-packages
+          helm package . -d .cr-release-packages
+          CHART_PACKAGE=$(ls .cr-release-packages/*.tgz | head -1)
+          echo "CHART_PACKAGE=${CHART_PACKAGE}" >> $GITHUB_ENV
+          echo "CHART_NAME=$(basename ${CHART_PACKAGE})" >> $GITHUB_ENV
+
+      - name: Create and Update index.yaml
+        run: |
+          # Create or update the index.yaml file in the main branch
+          if [ -f "index.yaml" ]; then
+            cp index.yaml old-index.yaml
+            helm repo index .cr-release-packages --url https://github.com/${{ github.repository }}/releases/download/v${{ env.CHART_VERSION }} --merge old-index.yaml
+          else
+            helm repo index .cr-release-packages --url https://github.com/${{ github.repository }}/releases/download/v${{ env.CHART_VERSION }}
+          fi
+          cp .cr-release-packages/index.yaml .
+          
+          # Commit and push the updated index.yaml
+          git add index.yaml
+          git commit -m "Update index.yaml for release v${{ env.CHART_VERSION }}"
+          git push origin main
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.CHART_VERSION }}
+          name: Release v${{ env.CHART_VERSION }}
+          body: |
+            Helm chart release v${{ env.CHART_VERSION }}
+            
+            ## What's Changed
+            ${{ steps.get-version.outputs.changelog }}
+          files: ${{ env.CHART_PACKAGE }}
+          draft: false
+          prerelease: false 
