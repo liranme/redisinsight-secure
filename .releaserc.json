@@ -13,13 +13,14 @@
       "semantic-release-helm3",
       {
         "chartPath": "helm/redisinsight",
-        "onlyUpdateVersion": false
+        "onlyUpdateVersion": false,
+        "registry": "file://./helm/charts"
       }
     ],
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "mkdir -p helm/charts && mv *.tgz helm/charts/ && helm repo index helm/charts --url https://github.com/${process.env.GITHUB_REPOSITORY}/raw/main/helm/charts"
+        "publishCmd": "mkdir -p helm/charts && helm repo index helm/charts --url https://github.com/${process.env.GITHUB_REPOSITORY}/raw/main/helm/charts"
       }
     ],
     [
