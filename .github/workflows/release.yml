@@ -57,7 +57,7 @@ jobs:
 
       - name: Commit Chart Package
         if: steps.semantic.outputs.new_release_published == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update helm repository for version ${{ steps.semantic.outputs.new_release_version }}"
-          file_pattern: "helm/charts/*" 
+        run: |
+          git add helm/charts/*
+          git commit -m "chore: update helm repository for version ${{ steps.semantic.outputs.new_release_version }}"
+          git push
