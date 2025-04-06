@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/liranme/redisinsight-secure/compare/v1.0.3...v1.0.4) (2025-04-06)
+
+
+### Bug Fixes
+
+* update appVersion to 2.68 ([0349a51](https://github.com/liranme/redisinsight-secure/commit/0349a51faf163a036e0d33747c6ff0333bd0b7f1))
+
 ## [1.0.3](https://github.com/liranme/redisinsight-secure/compare/v1.0.2...v1.0.3) (2025-04-06)
 
 
