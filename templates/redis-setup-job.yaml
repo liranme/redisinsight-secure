@@ -54,8 +54,12 @@ spec:
             name: {{ include "redisinsight.fullname" . }}-setup-clusters-script
             defaultMode: 0555
         - name: redis-clusters-config
-          configMap:
-            name: {{ include "redisinsight.fullname" . }}-redis-clusters-config
+          secret:
+            {{- if .Values.clustersSetup.config.existingSecretConfig }}
+            secretName: {{ .Values.clustersSetup.config.existingSecretConfig | default (include "redisinsight.fullname" . ) }}
+            {{- else }}
+            secretName: {{ include "redisinsight.fullname" . }}-redis-clusters
+            {{- end }}
             defaultMode: 0444
       {{- with .Values.clustersSetup.nodeSelector }}
       nodeSelector:

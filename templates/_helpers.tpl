@@ -60,3 +60,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Generate basic auth credentials for nginx ingress
+Users will need to generate proper htpasswd values for their passwords
+*/}}
+{{- define "redisinsight.basicauth" -}}
+{{- $result := "" -}}
+{{- range .Values.ingress.basicauth.users -}}
+{{- $result = printf "%s%s:{PLAIN}%s\n" $result .username .password -}}
+{{- end -}}
+{{ $result }}
+{{- end -}}
