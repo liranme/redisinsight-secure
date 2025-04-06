@@ -3,7 +3,33 @@ entries:
   redisinsight-secure:
   - apiVersion: v2
     appVersion: "2.68"
-    created: "2025-04-06T15:37:05.933963314Z"
+    created: "2025-04-06T15:40:22.982425101Z"
+    dependencies:
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 7.12.8
+    description: Redisinsight helm chart for Kubernetes
+    digest: 01dc6dc0df29fbd73a06d7cb2a7025e12ff5bc810a6211c282b2a0039942b9bd
+    home: https://github.com/liranme
+    icon: https://github.com/liranme/redisinsight-secure/raw/main/helm/redisinsight.png
+    keywords:
+    - redis
+    - redisinsight
+    - oauth2-proxy
+    maintainers:
+    - email: liranmenashe1@gmail.com
+      name: Liran Menashe
+    name: redisinsight-secure
+    sources:
+    - https://github.com/liranme/redisinsight-secure
+    type: application
+    urls:
+    - https://github.com/liranme/redisinsight-secure/raw/main/helm/charts/redisinsight-secure-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: "2.68"
+    created: "2025-04-06T15:40:22.974147487Z"
     dependencies:
     - condition: oauth2-proxy.enabled
       name: oauth2-proxy
@@ -29,7 +55,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2025-04-06T15:37:05.925901611Z"
+    created: "2025-04-06T15:40:22.964849167Z"
     dependencies:
     - condition: oauth2-proxy.enabled
       name: oauth2-proxy
@@ -55,7 +81,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2025-04-06T15:37:05.916839207Z"
+    created: "2025-04-06T15:40:22.955591665Z"
     dependencies:
     - condition: oauth2-proxy.enabled
       name: oauth2-proxy
@@ -81,7 +107,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2025-04-06T15:37:05.907224192Z"
+    created: "2025-04-06T15:40:22.946189993Z"
     dependencies:
     - condition: oauth2-proxy.enabled
       name: oauth2-proxy
@@ -105,4 +131,4 @@ entries:
     urls:
     - https://github.com/liranme/redisinsight-secure/raw/main/helm/charts/redisinsight-secure-1.0.0.tgz
     version: 1.0.0
-generated: "2025-04-06T15:37:05.897806473Z"
+generated: "2025-04-06T15:40:22.936481663Z"
