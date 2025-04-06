@@ -47,13 +47,13 @@ clustersSetup:
     # if using existing secret, please follow secret.yaml template
     existingSecretConfig: ""
     # List of Redis clusters to configure secret for RedisInsight
-    redisClusters:
-      - name: local-1
-        host: redis-master.default.svc.cluster.local
-        port: 6379
-        password: "redis-password"
-        username: "default"
-        tls: false
+    redisClusters: []
+      # - name: local-1
+      #   host: redis-master.default.svc.cluster.local
+      #   port: 6379
+      #   password: "redis-password"
+      #   username: "default"
+      #   tls: false
     # REQUIRED parameters:
     # - name: cluster-name          # Name of the Redis cluster (REQUIRED)
     # - host: redis.example.com     # Redis hostname or IP (REQUIRED)
