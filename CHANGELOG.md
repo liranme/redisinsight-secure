@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/liranme/redisinsight-secure/compare/v1.0.4...v1.0.5) (2025-04-06)
+
+
+### Bug Fixes
+
+* update readme ([72b3140](https://github.com/liranme/redisinsight-secure/commit/72b31405f06a2da9076b58ab178d7367234e0d8d))
+
 ## [1.0.4](https://github.com/liranme/redisinsight-secure/compare/v1.0.3...v1.0.4) (2025-04-06)
 
 
