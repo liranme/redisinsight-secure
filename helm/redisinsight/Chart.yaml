@@ -1,6 +1,7 @@
 apiVersion: v2
 appVersion: "1.4.0"
 description: Redisinsight helm chart for Kubernetes
+icon: https://redis.io/blog/so-youre-looking-for-the-redis-gui/
 home: https://github.com/liranme
 keywords:
   - redis
