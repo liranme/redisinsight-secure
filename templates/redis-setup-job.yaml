@@ -1,0 +1,76 @@
+{{- if .Values.clustersSetup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "redisinsight.fullname" . }}-setup-redis-clusters
+  labels:
+    {{- include "redisinsight.labels" . | nindent 4 }}
+  annotations:
+    # This is important! It ensures the job runs every time the helm chart is upgraded
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.clustersSetup.backoffLimit | default 2 }}
+  ttlSecondsAfterFinished: {{ .Values.clustersSetup.ttlSecondsAfterFinished | default 600 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "redisinsight.name" . }}-setup
+        app.kubernetes.io/instance: {{ .Release.Name }}-setup
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "redisinsight.serviceAccountName" . }}
+      containers:
+        - name: setup-redis-clusters
+          image: "{{ .Values.clustersSetup.image.repository }}:{{ .Values.clustersSetup.image.tag }}"
+          imagePullPolicy: {{ .Values.clustersSetup.image.pullPolicy }}
+          env:
+            - name: NAMESPACE
+              value: "{{ .Release.Namespace }}"
+            - name: REDISINSIGHT_HOST
+              value: "{{ include "redisinsight.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: REDISINSIGHT_PORT
+              value: "{{ .Values.service.port }}"
+            - name: LOG_LEVEL
+              value: "{{ .Values.clustersSetup.logLevel | default "INFO" }}"
+          command:
+            - /bin/sh
+            - "/scripts/add-redis-clusters.sh"
+          resources:
+            {{- toYaml .Values.clustersSetup.resources | nindent 12 }}
+          volumeMounts:
+            - name: setup-clusters-script
+              mountPath: /scripts
+            - name: redis-clusters-config
+              mountPath: /etc/redis-cluster-config
+      volumes:
+        - name: setup-clusters-script
+          configMap:
+            name: {{ include "redisinsight.fullname" . }}-setup-clusters-script
+            defaultMode: 0555
+        - name: redis-clusters-config
+          secret:
+            {{- if .Values.clustersSetup.config.existingSecretConfig }}
+            secretName: {{ .Values.clustersSetup.config.existingSecretConfig | default (include "redisinsight.fullname" . ) }}
+            {{- else }}
+            secretName: {{ include "redisinsight.fullname" . }}-redis-clusters
+            {{- end }}
+            defaultMode: 0444
+      {{- with .Values.clustersSetup.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clustersSetup.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clustersSetup.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }} 

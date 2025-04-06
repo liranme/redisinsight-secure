@@ -1,0 +1,41 @@
+# Example values file demonstrating arbitrary fields in Redis clusters
+clustersSetup:
+  enabled: true
+  redisClusters:
+    # Basic cluster with required and some arbitrary fields
+    - name: standard-cluster
+      endpoint: redis-standard.example.com
+      password: "password123"
+      # Standard fields
+      user_name: "default"
+      port: "6379"
+      tls: "false"
+      db: "0"
+      timeout: "60"
+      # Arbitrary custom fields
+      provider: "AWS"
+      region: "us-west-2"
+      cluster_type: "cache"
+      
+    # Cluster with more advanced arbitrary fields
+    - name: advanced-cluster
+      endpoint: redis-advanced.example.com
+      password: "secure-password"
+      # Standard fields
+      user_name: "admin"
+      port: "6380"
+      tls: "true"
+      verifyServerCert: "false"
+      # Arbitrary custom fields
+      provider: "GCP"
+      max_connections: "50"
+      auto_reconnect: "true"
+      ssl_options:
+        cert_file: "/path/to/cert"
+        verify_mode: "none"
+      tags:
+        - "production"
+        - "high-availability"
+      custom_config:
+        max_memory_policy: "allkeys-lru"
+        client_output_buffer_limit: "normal 0 0 0" 
