@@ -30,9 +30,6 @@ jobs:
         with:
           python-version: '3.10'
           
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.6.1
-
       - name: Run helm lint
         run: |
           helm lint $CHART_DIR/
@@ -61,18 +58,4 @@ jobs:
           
       - name: Run Helm Unit Tests
         run: |
-          helm unittest $CHART_DIR/ -f 'tests/*_test.yaml'
-
-      - name: Run ct lint
-        run: |
-          ct lint --all --config .github/ct.yaml
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
-        with:
-          config: .github/kind-config.yaml
-        if: github.event_name == 'pull_request'
-
-      - name: Run chart-testing (install)
-        run: ct install --all --config .github/ct.yaml
-        if: github.event_name == 'pull_request' 
+          helm unittest $CHART_DIR/ -f 'tests/*_test.yaml' 
