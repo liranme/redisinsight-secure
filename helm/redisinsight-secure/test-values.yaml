@@ -1,0 +1,35 @@
+# Minimal test values for RedisInsight deployment
+# Configure Redis connection and basic auth
+
+# Pre-configure Redis connection
+preconfig:
+  enabled: true
+  # Use a proper multi-line format with the |- indicator (important for JSON)
+  databases: |-
+    [
+      {
+        "host": "redis-master.default.svc.cluster.local",
+        "port": 6379,
+        "name": "redis-cluster",
+        "username": "default",
+        "password": "PSM5dMcgSy"
+      }
+    ]
+
+# Configure basic authentication
+ingress:
+  enabled: true
+  basicauth:
+    enabled: true
+    users:
+      - username: "user"
+        password: "pass"
+
+# Ensure password encryption is enabled
+passwordEncryption:
+  enabled: true
+
+# Enable auto-restart on configuration changes
+# Set to false to prevent unnecessary restarts
+deployment:
+  autoRestartOnConfigChange: true 

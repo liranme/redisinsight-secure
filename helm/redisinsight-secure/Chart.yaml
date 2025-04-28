@@ -14,7 +14,7 @@ name: redisinsight-secure
 sources:
   - https://github.com/liranme/redisinsight-secure
 type: application
-version: 1.0.5
+version: 1.0.0
 dependencies:
   - name: oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
