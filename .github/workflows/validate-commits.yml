@@ -1,20 +1,22 @@
-name: Validate Commits
+name: Validate PR Title
 
 on:
   pull_request:
     branches:
       - main
       - master
+    types:
+      - opened
+      - edited
+      - synchronize
 
 jobs:
-  validate-commits:
-    name: Validate Commit Messages
+  validate-pr-title:
+    name: Validate PR Title
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,6 +30,6 @@ jobs:
         run: |
           echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
 
-      - name: Validate commit messages
+      - name: Validate PR title
         run: |
-          npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose 
+          echo "${{ github.event.pull_request.title }}" | npx commitlint --verbose 
