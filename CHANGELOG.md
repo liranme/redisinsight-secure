@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/liranme/redisinsight-secure/compare/v1.0.0...v1.0.1) (2025-04-28)
+
+
+### Bug Fixes
+
+* bump version ([#6](https://github.com/liranme/redisinsight-secure/issues/6)) ([1a1acc8](https://github.com/liranme/redisinsight-secure/commit/1a1acc86c01de6236aad981ae43c0c88f2bde939))
+
 # 1.0.0 (2025-04-28)
 
 
