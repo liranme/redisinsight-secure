@@ -1,0 +1,10 @@
+preconfig:
+  enabled: true
+  databases: |-
+    [
+      {
+        "host": "redis.example.com",
+        "port": 6379,
+        "name": "test-cluster"
+      }
+    ] 

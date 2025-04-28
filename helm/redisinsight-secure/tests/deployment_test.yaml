@@ -28,9 +28,9 @@ tests:
           value: 3
   
   - it: should add preconfig volume when enabled
-    set:
-      preconfig.enabled: true
-      preconfig.databases: '[{"host":"redis.example.com","port":6379}]'
+    values:
+      - ../values.yaml  # Base values
+      - ./values/preconfig-test-values.yaml  # Custom values for this test
     asserts:
       - isKind:
           of: Deployment

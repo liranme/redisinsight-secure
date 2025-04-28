@@ -1,17 +1,19 @@
 name: Helm Unit Tests
 
 on:
-  push:
-    paths:
-      - 'helm/**'
   pull_request:
     paths:
       - 'helm/**'
+    branches:
+      - main
+      - master
 
 jobs:
   lint-test:
     name: Lint and Test
     runs-on: ubuntu-latest
+    env:
+        CHART_DIR: helm/redisinsight-secure
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,25 +35,25 @@ jobs:
 
       - name: Run helm lint
         run: |
-          helm lint helm/redisinsight-secure/
+          helm lint $CHART_DIR/
 
       - name: Run helm template validation
         run: |
-          helm template helm/redisinsight-secure/ --debug
+          helm template $CHART_DIR/ --debug
 
       - name: Validate templates with custom values
         run: |
           # Test with minimum values
-          helm template helm/redisinsight-secure/ --set "service.type=ClusterIP" --debug
+          helm template $CHART_DIR/ --set "service.type=ClusterIP" --debug
           
-          # Test with preconfig enabled
-          helm template helm/redisinsight-secure/ --set "preconfig.enabled=true" --set "preconfig.databases=[{\"host\":\"redis.example.com\",\"port\":6379}]" --debug
+          # Test with preconfig enabled - using values file instead of --set for complex JSON
+          helm template $CHART_DIR/ -f $CHART_DIR/tests/values/preconfig-test-values.yaml
           
           # Test with encryption disabled
-          helm template helm/redisinsight-secure/ --set "passwordEncryption.enabled=false" --debug
+          helm template $CHART_DIR/ --set "passwordEncryption.enabled=false" --debug
           
           # Test with basic auth enabled
-          helm template helm/redisinsight-secure/ --set "ingress.enabled=true" --set "ingress.basicauth.enabled=true" --debug
+          helm template $CHART_DIR/ --set "ingress.enabled=true" --set "ingress.basicauth.enabled=true" --debug
 
       - name: Install Helm Unit Test Plugin
         run: |
@@ -59,7 +61,7 @@ jobs:
           
       - name: Run Helm Unit Tests
         run: |
-          helm unittest helm/redisinsight-secure/ -f 'tests/*_test.yaml'
+          helm unittest $CHART_DIR/ -f 'tests/*_test.yaml'
 
       - name: Run ct lint
         run: |
