@@ -1,0 +1,60 @@
+suite: deployment test
+templates:
+  - deployment.yaml
+tests:
+  - it: should render deployment with default values
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "redis/redisinsight:2.68"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "RI_APP_PORT"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "RI_APP_HOST"
+  
+  - it: should set correct replica count when specified
+    set:
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+  
+  - it: should add preconfig volume when enabled
+    set:
+      preconfig.enabled: true
+      preconfig.databases: '[{"host":"redis.example.com","port":6379}]'
+    asserts:
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: preconfig-json
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: preconfig-json
+            mountPath: /etc/redisinsight/preconfig
+            readOnly: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_PRE_SETUP_DATABASES_PATH
+            value: "/etc/redisinsight/preconfig/preconfig.json"
+            
+  - it: should set encryption key when enabled
+    set:
+      passwordEncryption.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_ENCRYPTION_KEY 

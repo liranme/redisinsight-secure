@@ -1,0 +1,76 @@
+name: Helm Unit Tests
+
+on:
+  push:
+    paths:
+      - 'helm/**'
+  pull_request:
+    paths:
+      - 'helm/**'
+
+jobs:
+  lint-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run helm lint
+        run: |
+          helm lint helm/redisinsight-secure/
+
+      - name: Run helm template validation
+        run: |
+          helm template helm/redisinsight-secure/ --debug
+
+      - name: Validate templates with custom values
+        run: |
+          # Test with minimum values
+          helm template helm/redisinsight-secure/ --set "service.type=ClusterIP" --debug
+          
+          # Test with preconfig enabled
+          helm template helm/redisinsight-secure/ --set "preconfig.enabled=true" --set "preconfig.databases=[{\"host\":\"redis.example.com\",\"port\":6379}]" --debug
+          
+          # Test with encryption disabled
+          helm template helm/redisinsight-secure/ --set "passwordEncryption.enabled=false" --debug
+          
+          # Test with basic auth enabled
+          helm template helm/redisinsight-secure/ --set "ingress.enabled=true" --set "ingress.basicauth.enabled=true" --debug
+
+      - name: Install Helm Unit Test Plugin
+        run: |
+          helm plugin install https://github.com/quintush/helm-unittest
+          
+      - name: Run Helm Unit Tests
+        run: |
+          helm unittest helm/redisinsight-secure/ -f 'tests/*_test.yaml'
+
+      - name: Run ct lint
+        run: |
+          ct lint --all --config .github/ct.yaml
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          config: .github/kind-config.yaml
+        if: github.event_name == 'pull_request'
+
+      - name: Run chart-testing (install)
+        run: ct install --all --config .github/ct.yaml
+        if: github.event_name == 'pull_request' 
