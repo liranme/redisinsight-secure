@@ -10,63 +10,63 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "2.68"
 
-# Configuration for automatic Redis clusters setup
-# When enabled, RedisInsight will be preconfigured with the specified Redis clusters
-clustersSetup:
+# Configuration for preconfigured database connections using JSON file
+# This allows RedisInsight to be preconfigured with database connections
+# without adding them through the UI
+# See: https://redis.io/docs/latest/operate/redisinsight/configuration/
+preconfig:
+  # Enable the preconfigured database connections
   enabled: false
-  # Accept redisinsight EULA, please read the EULA before setting to true
-  #https://redis.io/legal/redis-insight-license-terms/
-  acceptEULA: false
-  # Container image configuration for the setup container
-  image:
-    repository: "giantswarm/tiny-tools"
-    tag: "3.12"
-    pullPolicy: IfNotPresent
-  # Resource configuration for the setup container
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 64Mi
-  # Job configuration
-  backoffLimit: 6
-  ttlSecondsAfterFinished: 600
-  # Job scheduling configuration
-  nodeSelector: {}
-  affinity: {}
-  tolerations: []
-  # Logging configuration
-  logLevel: DEBUG  # Valid values: DEBUG, INFO, WARN, ERROR, NONE
+  # Use an existing secret containing the preconfig.json file
+  # If not specified, a new secret will be created with the content in databases
+  existingSecret: ""
+  # Database connections to preconfigure
+  # This should be valid JSON in the format expected by RedisInsight
+  # It's recommended to use the |- indicator for multi-line JSON
+  # Example:
+  # databases: |-
+  #   [
+  #     {
+  #       "host": "redis-master.default.svc.cluster.local",
+  #       "port": 6379,
+  #       "name": "redis-cluster",
+  #       "username": "default",
+  #       "password": "redis-password",
+  #       "tls": false
+  #     }
+  #   ]
+  databases: ""
 
-  config:
-    # Prune clusters that are not in the config file  
-    prunClusters: true
-    # Existing secret with Redis clusters config (if not provided, a new secret will be created based on the redisClusters list)
-    # if using existing secret, please follow secret.yaml template
-    existingSecretConfig: ""
-    # List of Redis clusters to configure secret for RedisInsight
-    redisClusters: []
-      # - name: local-1
-      #   host: redis-master.default.svc.cluster.local
-      #   port: 6379
-      #   password: "redis-password"
-      #   username: "default"
-      #   tls: false
-    # REQUIRED parameters:
-    # - name: cluster-name          # Name of the Redis cluster (REQUIRED)
-    # - host: redis.example.com     # Redis hostname or IP (REQUIRED)
-    # - port: 6379                  # Redis port (defaults to 6379 if not specified)
-    #
-    # Common optional parameters:
-    # - password: "secure-password"  # Redis password
-    # - username: "default"          # Redis username
-    # - tls: false                   # Enable TLS
-    # - db: 0                        # Database number
-    # - timeout: 60000               # Connection timeout in milliseconds
-    #
-    # Any other parameters are optional and will be passed to the RedisInsight API
+# Application configuration
+config:
+  # Configure the log level of RedisInsight
+  # Supported values: error, warn, info, http, verbose, debug, silly
+  logLevel: "info"
+  
+  # When set to false, this disables the ability to manage database connections (adding, editing, or deleting)
+  databaseManagement: false
+  
+  # Additional environment variables to pass to the RedisInsight container
+  # This can be used to set any RedisInsight environment variables not directly supported by this chart
+  # Example:
+  # extraEnvVars:
+  #   - name: RI_PROXY_PATH
+  #     value: "/redisinsight"
+  extraEnvVars: []
+  # - name: ENV_VAR_NAME
+  #   value: "value"
+  # - name: ENV_VAR_FROM_SECRET
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-secret
+  #       key: secret-key
+
+# Deployment-related settings
+deployment:
+  # Whether to auto-restart pods when configuration changes
+  # Set to false to prevent pods from restarting on every helm upgrade
+  # when no actual configuration changes have been made
+  autoRestartOnConfigChange: true
 
 imagePullSecrets: []
 nameOverride: ""

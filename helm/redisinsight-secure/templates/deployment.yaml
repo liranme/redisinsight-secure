@@ -17,10 +17,27 @@ spec:
       {{- include "redisinsight.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- if .Values.deployment.autoRestartOnConfigChange }}
+        # Add checksums only when auto-restart is enabled
+        # Checksums for core configuration 
+        checksum/config: {{ .Values.config.logLevel }}-{{ .Values.config.databaseManagement }}-{{ .Values.config.extraEnvVars | toJson | sha256sum }}
+        {{- if .Values.preconfig.enabled }}
+        # Checksum for preconfigured database connections
+        checksum/preconfig: {{ .Values.preconfig.databases | sha256sum }}
+        {{- end }}
+        {{- if .Values.passwordEncryption.enabled }}
+        # Checksum for encryption secret
+        checksum/encryption: {{ .Values.passwordEncryption.enabled | toString | sha256sum }}
+        {{- end }}
+        {{- if .Values.ingress.basicauth.enabled }}
+        # Checksum for basic auth configuration
+        checksum/basicauth: {{ .Values.ingress.basicauth.users | toJson | sha256sum }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "redisinsight.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
@@ -65,12 +82,21 @@ spec:
                   name: {{ include "redisinsight.fullname" . }}-encryption
                   key: encryptionKey
             {{- end }}
+            {{- if .Values.preconfig.enabled }}
+            - name: RI_PRE_SETUP_DATABASES_PATH
+              value: "/etc/redisinsight/preconfig/preconfig.json"
+            {{- end }}
             - name: RI_LOG_LEVEL
-              value: "{{ .Values.logLevel | default "info" }}"
+              value: "{{ .Values.config.logLevel }}"
+            - name: RI_DATABASE_MANAGEMENT
+              value: "{{ .Values.config.databaseManagement }}"
             - name: RI_FILES_LOGGER
               value: "true"
             - name: RI_STDOUT_LOGGER
               value: "true"
+            {{- with .Values.config.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -86,6 +112,11 @@ spec:
             - name: redisinsight-data
               mountPath: /data
             {{- end }}
+            {{- if .Values.preconfig.enabled }}
+            - name: preconfig-json
+              mountPath: /etc/redisinsight/preconfig
+              readOnly: true
+            {{- end }}
             {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -94,6 +125,16 @@ spec:
         - name: redisinsight-data
           persistentVolumeClaim:
             claimName: {{ include "redisinsight.fullname" . }}-data
+        {{- end }}
+        {{- if .Values.preconfig.enabled }}
+        - name: preconfig-json
+          secret:
+            {{- if .Values.preconfig.existingSecret }}
+            secretName: {{ .Values.preconfig.existingSecret }}
+            {{- else }}
+            secretName: {{ include "redisinsight.fullname" . }}-preconfig
+            {{- end }}
+            defaultMode: 0444
         {{- end }}
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

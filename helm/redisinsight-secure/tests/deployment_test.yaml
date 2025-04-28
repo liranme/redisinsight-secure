@@ -1,0 +1,66 @@
+suite: deployment test
+templates:
+  - deployment.yaml
+tests:
+  - it: should render deployment with default values
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "redis/redisinsight:2.68"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "RI_APP_PORT"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "RI_APP_HOST"
+  
+  - it: should set correct replica count when specified
+    set:
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+  
+  - it: should add preconfig volume when enabled
+    values:
+      - ../values.yaml  # Base values
+      - ./values/preconfig-test-values.yaml  # Custom values for this test
+    asserts:
+      - isKind:
+          of: Deployment
+      # Check that the volumes list is not empty
+      - isNotEmpty:
+          path: spec.template.spec.volumes
+      # Check for the preconfig volume with direct equals
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: preconfig-json
+      # Check for the environment variable
+      - hasDocuments:
+          count: 1
+      # Check for the specific environment variable in the array
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_PRE_SETUP_DATABASES_PATH
+            value: /etc/redisinsight/preconfig/preconfig.json
+            
+  - it: should set encryption key when enabled
+    set:
+      passwordEncryption.enabled: true
+    asserts:
+      # Check for encryption key env var
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                key: encryptionKey
+                name: RELEASE-NAME-redisinsight-secure-encryption 

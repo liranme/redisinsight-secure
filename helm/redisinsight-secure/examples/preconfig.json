@@ -1,0 +1,10 @@
+[
+  {
+    "host": "redis-master.default.svc.cluster.local",
+    "port": 6379,
+    "name": "redis-cluster",
+    "username": "default",
+    "password": "PSM5dMcgSy",
+    "tls": false
+  }
+] 

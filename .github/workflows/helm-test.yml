@@ -1,0 +1,61 @@
+name: Helm Unit Tests
+
+on:
+  pull_request:
+    paths:
+      - 'helm/**'
+    branches:
+      - main
+      - master
+
+jobs:
+  lint-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    env:
+        CHART_DIR: helm/redisinsight-secure
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Run helm lint
+        run: |
+          helm lint $CHART_DIR/
+
+      - name: Run helm template validation
+        run: |
+          helm template $CHART_DIR/ --debug
+
+      - name: Validate templates with custom values
+        run: |
+          # Test with minimum values
+          helm template $CHART_DIR/ --set "service.type=ClusterIP" --debug
+          
+          # Test with preconfig enabled - using values file instead of --set for complex JSON
+          helm template $CHART_DIR/ -f $CHART_DIR/tests/values/preconfig-test-values.yaml
+          
+          # Test with encryption disabled
+          helm template $CHART_DIR/ --set "passwordEncryption.enabled=false" --debug
+          
+          # Test with basic auth enabled
+          helm template $CHART_DIR/ --set "ingress.enabled=true" --set "ingress.basicauth.enabled=true" --debug
+
+      - name: Install Helm Unit Test Plugin
+        run: |
+          helm plugin install https://github.com/quintush/helm-unittest
+          
+      - name: Run Helm Unit Tests
+        run: |
+          helm unittest $CHART_DIR/ -f 'tests/*_test.yaml' 
