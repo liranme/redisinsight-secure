@@ -1,4 +1,4 @@
-## [1.0.5](https://github.com/liranme/redisinsight-secure/compare/v1.0.4...v1.0.5) (2025-04-06)
+## [0.1.0](https://github.com/liranme/redisinsight-secure/compare/v1.0.4...v0.1.0) (2025-04-06)
 
 
 ### Bug Fixes
