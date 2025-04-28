@@ -44,7 +44,7 @@ config:
   logLevel: "info"
   
   # When set to false, this disables the ability to manage database connections (adding, editing, or deleting)
-  databaseManagement: true
+  databaseManagement: false
   
   # Additional environment variables to pass to the RedisInsight container
   # This can be used to set any RedisInsight environment variables not directly supported by this chart
