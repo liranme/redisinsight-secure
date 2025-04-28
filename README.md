@@ -1,5 +1,7 @@
 # RedisInsight-secure Helm Chart
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/redisinsight-secure)](https://artifacthub.io/packages/search?repo=redisinsight-secure)
+
 This Helm chart deploys RedisInsight, a powerful visualization tool for Redis, on Kubernetes clusters.
 
 ## Overview
