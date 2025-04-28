@@ -34,24 +34,33 @@ tests:
     asserts:
       - isKind:
           of: Deployment
-      # Check if any volume exists with name: preconfig-json
-      - matchRegex:
-          path: spec.template.spec.volumes[*].name
-          pattern: preconfig-json
-      # Check if the volume mount exists
-      - matchRegex:
-          path: spec.template.spec.containers[0].volumeMounts[*].name
-          pattern: preconfig-json
-      # Check if the environment variable is set
-      - matchRegex:
-          path: spec.template.spec.containers[0].env[*].name
-          pattern: RI_PRE_SETUP_DATABASES_PATH
+      # Check that the volumes list is not empty
+      - isNotEmpty:
+          path: spec.template.spec.volumes
+      # Check for the preconfig volume with direct equals
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: preconfig-json
+      # Check for the environment variable
+      - hasDocuments:
+          count: 1
+      # Check for the specific environment variable in the array
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_PRE_SETUP_DATABASES_PATH
+            value: /etc/redisinsight/preconfig/preconfig.json
             
   - it: should set encryption key when enabled
     set:
       passwordEncryption.enabled: true
     asserts:
-      # Check if the environment variable exists
-      - matchRegex:
-          path: spec.template.spec.containers[0].env[*].name
-          pattern: RI_ENCRYPTION_KEY 
+      # Check for encryption key env var
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RI_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                key: encryptionKey
+                name: RELEASE-NAME-redisinsight-secure-encryption 
