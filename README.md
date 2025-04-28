@@ -8,11 +8,13 @@ This Helm chart deploys RedisInsight, a powerful visualization tool for Redis, o
 
 RedisInsight provides a graphical user interface for managing, analyzing, and optimizing Redis databases. This Helm chart simplifies the deployment of RedisInsight in Kubernetes environments, with features like:
 
-- Automatic Redis cluster configuration
+- Preconfigured database connections via JSON file
 - Multiple authentication methods (basic auth, OAuth2)
 - Persistent storage management
 - Support for TLS and encryption
 - Fine-grained resource allocation
+- Configurable logging and permissions
+- Custom environment variables
 
 ## Prerequisites
 
@@ -52,8 +54,6 @@ helm upgrade my-redis-insight redisinsight-secure/redisinsight
 helm uninstall my-redis-insight
 ```
 
-
-
 ## Configuration
 
 ### Important Parameters
@@ -62,11 +62,13 @@ helm uninstall my-redis-insight
 |-----------|-------------|---------|
 | `replicaCount` | Number of RedisInsight replicas | `1` |
 | `image.repository` | RedisInsight image repository | `redis/redisinsight` |
-| `image.tag` | RedisInsight image tag | `"2.58"` |
+| `image.tag` | RedisInsight image tag | `"2.68"` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `clustersSetup.enabled` | Enable automatic Redis cluster configuration | `true` |
-| `clustersSetup.acceptEULA` | Accept RedisInsight EULA | `false` |
-| `clustersSetup.config.prunClusters` | Remove clusters that exist in RedisInsight but not in config | `true` |
+| `preconfig.enabled` | Enable preconfigured database connections via JSON file | `false` |
+| `preconfig.existingSecret` | Use existing secret for preconfigured database connections | `""` |
+| `config.logLevel` | Configure the log level of RedisInsight | `"info"` |
+| `config.databaseManagement` | Enable/disable database connection management | `true` |
+| `config.extraEnvVars` | Additional environment variables for RedisInsight | `[]` |
 | `persistence.enabled` | Enable persistent storage for RedisInsight data | `false` |
 | `passwordEncryption.enabled` | Enable encryption for Redis passwords | `true` |
 | `ingress.enabled` | Enable ingress resource for RedisInsight | `false` |
@@ -76,19 +78,29 @@ helm uninstall my-redis-insight
 ### Example Values File
 
 ```yaml
-# Basic RedisInsight setup with a single Redis cluster
+# Basic RedisInsight setup with preconfigured database connections
 image:
-  tag: "2.58"
+  tag: "2.68"
 
-clustersSetup:
+preconfig:
   enabled: true
-  acceptEULA: true
-  config:
-    redisClusters:
-      - name: "my-redis"
-        host: "redis.default.svc.cluster.local"
-        port: 6379
-        password: "my-password" # Consider using secrets for passwords
+  databases: |
+    [
+      {
+        "host": "redis-master.default.svc.cluster.local",
+        "port": 6379,
+        "name": "redis-cluster",
+        "username": "default",
+        "password": "my-password" # Consider using secrets for passwords
+      }
+    ]
+
+config:
+  logLevel: "debug"
+  databaseManagement: false
+  extraEnvVars:
+    - name: RI_PROXY_PATH
+      value: "/redisinsight"
 
 persistence:
   enabled: true
@@ -97,6 +109,104 @@ persistence:
 service:
   type: ClusterIP
 ```
+
+## Preconfigured Database Connections
+
+RedisInsight supports preconfiguring database connections using a JSON file. This method allows you to securely manage database connections with passwords and sensitive information stored in Kubernetes secrets.
+
+### Using Embedded JSON Configuration
+
+```yaml
+preconfig:
+  enabled: true
+  databases: |-
+    [
+      {
+        "host": "redis-master.default.svc.cluster.local",
+        "port": 6379,
+        "name": "redis-cluster",
+        "username": "default", 
+        "password": "redis-password",
+        "tls": false
+      }
+    ]
+```
+
+### Using Existing Secret for Preconfigured Connections
+
+For enhanced security, you can create a Kubernetes secret containing the preconfigured database connections:
+
+```yaml
+preconfig:
+  enabled: true
+  existingSecret: "my-redisinsight-config-secret"
+```
+
+The secret should contain a key named `preconfig.json` with the database configuration in JSON format.
+
+```bash
+# Example command to create the secret:
+kubectl create secret generic my-redisinsight-config-secret \
+  --from-file=preconfig.json=/path/to/preconfig.json
+```
+
+## Application Configuration
+
+### Log Level
+
+Configure the logging level for RedisInsight:
+
+```yaml
+config:
+  logLevel: "debug"  # Options: error, warn, info, http, verbose, debug, silly
+```
+
+### Database Management
+
+Control whether users can add, edit, or delete database connections:
+
+```yaml
+config:
+  databaseManagement: false  # Disable database connection management in the UI
+```
+
+### Custom Environment Variables
+
+Set any additional environment variables needed for RedisInsight:
+
+```yaml
+config:
+  extraEnvVars:
+    - name: RI_PROXY_PATH
+      value: "/redisinsight"
+    - name: RI_CUSTOM_SETTING
+      value: "custom-value"
+    # Using a secret for sensitive values
+    - name: RI_SENSITIVE_SETTING
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: sensitive-value
+```
+
+### Auto Restart on Configuration Changes
+
+The Helm chart includes built-in support for automatically restarting pods when configuration changes are detected. This ensures that any changes to environment variables, database configurations, or secrets are immediately applied without manual intervention.
+
+The following changes will trigger an automatic pod restart:
+- Changes to application environment variables in the `config` section
+- Changes to preconfigured database connections (when enabled)
+- Changes to encryption keys (when password encryption is enabled)
+- Changes to basic authentication configuration (when enabled)
+
+You can disable the automatic pod restarts by setting:
+
+```yaml
+deployment:
+  autoRestartOnConfigChange: false
+```
+
+This is useful in environments where you want to control pod restarts manually or if you experience unwanted restarts during Helm upgrades when no actual configuration has changed.
 
 ## Authentication Options
 
@@ -145,43 +255,6 @@ oauth2-proxy:
       upstreams = ["http://redisinsight.svc.cluster.local:5540"]
 ```
 
-## Redis Clusters Configuration
-
-RedisInsight can automatically configure connections to your Redis databases:
-
-```yaml
-clustersSetup:
-  enabled: true
-  acceptEULA: true # Required - read and accept RedisInsight license
-  config:
-    prunClusters: true # Remove entries not in current config
-    redisClusters:
-      - name: "redis-main"
-        host: "redis-master.default.svc.cluster.local"
-        port: 6379
-        password: "secure-password"
-        username: "default"
-        tls: false
-      
-      - name: "redis-replica"
-        host: "redis-replica.default.svc.cluster.local"
-        port: 6379
-        tls: true
-```
-
-### Using Existing Secret for Redis Clusters
-
-Instead of specifying Redis connections in values.yaml, you can use an existing secret:
-
-```yaml
-clustersSetup:
-  enabled: true
-  acceptEULA: true
-  config:
-    existingSecretConfig: "redis-connections-secret"
-    redisClusters: [] # Ignored when existingSecretConfig is provided
-```
-
 ## Storage and Persistence
 
 RedisInsight can store its configuration data on persistent volumes:
@@ -193,15 +266,6 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 2Gi
-```
-
-## Logging Levels
-
-Set the logging level for the Redis cluster setup job:
-
-```yaml
-clustersSetup:
-  logLevel: INFO  # Options: DEBUG, INFO, WARN, ERROR, NONE
 ```
 
 ## Security
@@ -251,7 +315,8 @@ resources:
 This repository follows [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This enables automatic versioning and release notes generation.
 
 Examples:
-```feat(auth): add support for LDAP authentication
+```
+feat(auth): add support for LDAP authentication
 fix: correct port binding in deployment template
 docs: update installation instructions
 ```
