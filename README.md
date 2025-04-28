@@ -36,10 +36,10 @@ helm repo update
 
 ```bash
 # Install with default configuration
-helm install my-redis-insight redisinsight-secure/redisinsight
+helm install my-redis-insight redisinsight-secure/redisinsight-secure
 
 # Install with custom configuration
-helm install my-redis-insight redisinsight-secure/redisinsight -f values.yaml
+helm install my-redis-insight redisinsight-secure/redisinsight-secure -f values.yaml
 ```
 
 ### Upgrading
@@ -84,7 +84,7 @@ image:
 
 preconfig:
   enabled: true
-  databases: |
+  databases: |-
     [
       {
         "host": "redis-master.default.svc.cluster.local",
@@ -357,7 +357,7 @@ To use this system effectively:
 
 ## Configuration File Reference
 
-For detailed configuration options, refer to the [values.yaml](https://github.com/your-repo/redisinsight/blob/main/values.yaml) file.
+For detailed configuration options, refer to the [values.yaml](https://github.com/liranme/redisinsight-secure/blob/main/helm/redisinsight-secure/values.yaml) file.
 
 ## License
 
